@@ -1,5 +1,6 @@
 {
     "name": "kevin/pruebas",
+    "description": "A brief description of what your package does.", 
     "require": {
         "phpunit/phpunit": "^11.5",
         "psr/log": "^3.0"
@@ -14,5 +15,6 @@
             "name": "Dilan Adrian Zapata Ortiz",
             "email": "dilanadrianzapataortiz26@gmail.com"
         }
-    ]
+    ],
+    "license": "MIT"
 }
