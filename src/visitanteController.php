@@ -12,10 +12,8 @@
                     "titulo"=>"Peticion incorrecta",
                     "mensaje"=>"Lo sentimos, la accion que intentas realizar no es correcta"
                 ];
+
                 return json_encode($mensaje);
-                exit();
-
-
             }else {/* Validacion de la no existencia de variables post y que vengan vacias a excepcion de los campos de vehiculos que no son obligatorios para el registro para eviar una alerta de error con los campos. */
                 if (!isset($dataVisitante['nombres_visitante'],
                 $dataVisitante['tipo_doc_visitante'],
@@ -111,7 +109,7 @@
                                 "titulo"=>"Campo incompleto",
                                 "mensaje"=>"Lo sentimos, el campo de PLACA DE VEHICULO esta incompleto."
                             ];
-                            echo json_encode($mensaje);
+                            return json_encode($mensaje);
                             exit();
                         }elseif($tipo_vehiculo == "" && $placa_vehiculo != "") {
                             $mensaje=[
@@ -201,7 +199,7 @@
                                         if (!isset($tipo_vehiculo_vs,$placa_vehiculo_vs)) {
                                             $mensaje=[
                                                 "titulo"=>"Visitante registrado",
-                                                "mensaje"=>"Genial, el visitante ".$nombre_vs." ".$apellidos_vs." fue registrado con existo en nuetra base de datos.",
+                                                "mensaje"=>"Genial, el visitante fue registrado con existo en nuetra base de datos.",
                                                 "icono"=> "success",
                                                 "tipoMensaje"=>"confirmado"
                                             ];
@@ -222,9 +220,7 @@
                                             }else{
                                                 $mensaje=[
                                                     "titulo"=>"Visitante Registrado",
-                                                    "mensaje"=>"Genial, el visitante ".$nombre_vs." ".$apellidos_vs." fue registrado con exito y el  vehiculo con placas ".$placa_vehiculo_vs." fue asociado a el exitosamente.",
-                                                    "icono"=> "success",
-                                                    "tipoMensaje"=>"normal"
+                                                    "mensaje"=>"Genial, el visitante fue registrado con exito y el  vehiculo fue asociado a el exitosamente."
                                                 ];
                                                 return json_encode($mensaje);
                                                 exit();
@@ -265,17 +261,13 @@
                                         if ($datos[2] == 'ACTIVO' || $datos[2] == 'PERMANECE' ) {
                                             $mensaje=[
                                                 "titulo"=>"Informacion",
-                                                "mensaje"=>"El Señor(a) ".$nombre_vs."  ya se encuentra en nuestra base de datos como visitante.",
-                                                "icono"=> "info",
-                                                "tipoMensaje"=>"normal"
+                                                "mensaje"=>"El Senor(a) ya se encuentra en nuestra base de datos como visitante."
                                             ];
-                                            echo json_encode($mensaje);
+                                            return json_encode($mensaje);
                                         }elseif ($datos[2] == 'INACTIVO'){
                                             $mensaje=[
                                                 "titulo"=>"Informacion",
-                                                "mensaje"=>$nombre_vs." con numero de documento ".$num_documento_vs." ya se encuentra en nuestra base de datos inactivo por algun motivo, si deseas cambiar su estado a activo debera hacerlo una persona autoriazada desde el apartado de visitantes INACTIVOS.",
-                                                "icono"=> "info",
-                                                "tipoMensaje"=>"normal"
+                                                "mensaje"=>"numero de documento ya se encuentra en nuestra base de datos inactivo por algun motivo, si deseas cambiar su estado a activo debera hacerlo una persona autoriazada desde el apartado de visitantes INACTIVOS.",
                                             ];
                                             echo json_encode($mensaje);
                                             exit();
@@ -290,9 +282,9 @@
         }
 
         
-        public function vehiculosVisitante(string $num_id){
+        public function vehiculosVisitante(array $num_id){
          
-            $num_identificacion = $this->limpiarDatos($num_id);
+            $num_identificacion = $this->limpiarDatos($num_id['id_visistante']);
 
             $consultar_vehiculo_query = "SELECT * FROM `vehiculos_personas` WHERE num_identificacion_persona = '$num_identificacion';";
             $consultar_vehiculo = $this->ejecutarConsulta($consultar_vehiculo_query);
@@ -303,41 +295,23 @@
             }else {
                 if ($consultar_vehiculo->num_rows < 1) {
                 
-                    $titulo = 'Error';
-                    $descripcion = 'Lo sentimos, parece que el visitante que intentas editar no se encuentra en la base de datos.';
-                    $alerta_mensaje = 'alerta_mensaje';
-                    echo '<tr><td colspan="6">No se encontraron Vehiculos asociados a esta persona</td></tr>';
+                    $mensaje=[
+                        "titulo"=>"Informacion",
+                        "mensaje"=>"Lo sentimos, este visitante no tiene vehiculos asociados."
+                    ];
+                    return json_encode($mensaje);
                     exit();
                 }else {
-                    $tabla = '';
-                    while ($datos = $consultar_vehiculo->fetch_object()) {
-                        $tabla.='
-                            <tr >
-                                <td>'.$datos->num_identificacion_persona.'</td>
-                                <td>'.$datos->placa_vehiculo.'</td>
-                                <td>'.$datos->permanencia.'</td>
-                                <td>
-                                    <a color="Blue" href="vehiculoUpdate/'.$datos->placa_vehiculo.'/" class="button is-success is-rounded is-small">
-                                        Actualizar
-                                    </a>
-                                </td>
-                                <td>
-                                    <form class="FormularioAjax" action="app/ajax/vehiculoAjax.php" method="POST" autocomplete="off" >
-    
-                                        <input type="hidden" name="modulo_cliente" value="eliminar">
-                                        <input type="hidden" name="cliente_id" value="'.$datos->placa_vehiculo.'">
-    
-                                        <button color="red" type="submit" class="button is-danger is-rounded is-small">
-                                            Eliminar
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        ';
-                    }
+                    // Generar tabla JSON
+                    $tabla = [
+                        "titulo" => "Vehiculos asociados a este visitante",
+                        "mensaje" => "Si tiene vehiculos asociados"
+                    ];
                     $consultar_vehiculo->free();
                     unset($consultar_vehiculo);
-                    return $tabla;
+        
+                    // JSON limpio sin espacios innecesarios
+                    return json_encode($tabla);
                 }
             }
         }
@@ -346,6 +320,7 @@
         public function editarVisitante(){
             if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 # code...
+                
             }else {/* Validacion de la no existencia de variables post y que vengan vacias a excepcion de los campos de vehiculos que no son obligatorios para el registro para eviar una alerta de error con los campos. */
                 if (!isset($_POST['nombres_visitante'],
                  $_POST['tipo_doc_visitante'],
@@ -449,7 +424,7 @@
         }
 
 
-        public function ListarVisitanteController(){
+        public function ListarVisitanteController(array $data){
 
             header('Content-Type: application/json'); 
 
@@ -464,15 +439,15 @@
                 'fecha_hora_ultimo_ingreso',
                 'permanencia'];
 
-            $tabla = "visitantes";
+            $tabla =  "visitantes";
             $id = 'tipo_documento';
             
-            $tipo_listado = $this->limpiarDatos($_POST['tipoListado']);
-            unset($_POST['tipoListado']);
+            $tipo_listado = $this->limpiarDatos($data['tipoListado']);
+            unset($data['tipoListado']);
             
             $filtro = '';
-            if (isset($_POST['filtro']) && $_POST['filtro'] !== '') {
-                $filtro = $this->limpiarDatos($_POST['filtro']);
+            if (isset($data['filtro']) && $data['filtro'] !== '') {
+                $filtro = $this->limpiarDatos($data['filtro']);
             }
 
             /* Filtro Like */
@@ -490,12 +465,12 @@
             }
             /* Filtro Limit */
             $limit = 3;
-            if (isset($_POST['registros']) && $_POST['registros'] !== '') {
-                $limit = $this->limpiarDatos($_POST['registros']);
+            if (isset($data['registros']) && $data['registros'] !== '') {
+                $limit = $this->limpiarDatos($data['registros']);
             }
             $pagina = 0;
-            if (isset($_POST['pagina']) && $_POST['pagina'] !== '') {
-                $pagina = $this->limpiarDatos($_POST['pagina']);
+            if (isset($data['pagina']) && $data['pagina'] !== '') {
+                $pagina = $this->limpiarDatos($data['pagina']);
             }
 
             if (!$pagina) {
@@ -534,155 +509,19 @@
 
 
             $output = [];
-            $output['total_registros'] = $total_registros;
-            $output['total_filtro'] = $total_filtro;
-            $output['data'] = '';
-            $output['paginacion'] = '';
             if (!$buscar_visitantes){
-					$output['data'] = $tipo_listado == 'tabla' 
-                    ? '
-                                    <table class="table">
-                                        <thead class="head-table">
-                                            <tr>
-                                                <th>Tipo de Documento</th>
-                                                <th>Número de Identificación</th>
-                                                <th>Nombres</th>
-                                                <th>Apellidos</th>
-                                                <th>Correo</th>
-                                                <th>Teléfono</th>
-                                                <th>Fecha y Hora Último Ingreso</th>
-                                                <th>Permanencia</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="body-table" id="listado_visitantes">
-                                        <tr><td colspan="9">Error al cargar los visitantes</td></tr>
-                                        </tbody>
-                                        </table>' 
-                    : '
-                    <div class="document-card">
-                        <div class="card-header">
-                            <div>
-                                <p class="document-title">Error en el listado</p>
-                                <p class="document-meta">Error al listar los reportes</p>
-                            </div>
-                            <span class="toggle-icon"><ion-icon name="chevron-down-outline"></ion-icon></span> 
-                        </div>
-                    </div>';
+					$output['data'] = "Error en la consulta";
             } else{
                 if ($buscar_visitantes->num_rows < 1) {
-                    $output['data'] = $tipo_listado == 'tabla' 
-                    ? '
-                                    <table class="table">
-                                        <thead class="head-table">
-                                            <tr>
-                                                <th>Tipo de Documento</th>
-                                                <th>Número de Identificación</th>
-                                                <th>Nombres</th>
-                                                <th>Apellidos</th>
-                                                <th>Correo</th>
-                                                <th>Teléfono</th>
-                                                <th>Fecha y Hora Último Ingreso</th>
-                                                <th>Permanencia</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="body-table" id="listado_visitantes">
-                                        <tr><td colspan="9">No se encontraron Visitantes</td></tr>
-                                        </tbody>
-                                        </table>'
-                    :'
-                    <div class="document-card">
-                        <div class="card-header">
-                            <div>
-                                <p class="document-meta">No se encontro Visitantes</p>
-                            </div>
-                        </div>
-                    </div>';
+                    $output['data'] = "No se encontraron registros";
                 } else{
                     if ($tipo_listado == 'tabla') {
-                        $output['data'] = '
-                                    <table class="table">
-                                        <thead class="head-table">
-                                            <tr>
-                                                <th>Tipo de Documento</th>
-                                                <th>Número de Identificación</th>
-                                                <th>Nombres</th>
-                                                <th>Apellidos</th>
-                                                <th>Correo</th>
-                                                <th>Teléfono</th>
-                                                <th>Fecha y Hora Último Ingreso</th>
-                                                <th>Permanencia</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="body-table" id="listado_visitantes">
-                                    ';
-    
-                        while ($datos = $buscar_visitantes->fetch_object()) {
-                            $output['data'].='
-                                <tr >
-                                    <td>'.$datos->tipo_documento.'</td>
-                                    <td>'.$datos->num_identificacion.'</td>
-                                    <td>'.$datos->nombres.'</td>
-                                    <td>'.$datos->apellidos.'</td>
-                                    <td>'.$datos->correo.'</td>
-                                    <td>'.$datos->telefono.'</td>
-                                    <td>'.$datos->fecha_hora_ultimo_ingreso.'</td>
-                                    <td>'.$datos->permanencia.'</td>
-                                    <td class="contenedor-colum-accion">
-                                        <a href="editar-visitante/'.$datos->num_identificacion.'/" class="button is-info is-rounded is-small">
-                                            Editar
-                                        </a>
-                                    </td>
-                                </tr>
-                            ';
-                        }
-                        $output['data'] .= '</tbody></table>';
+                        $output['data'] = "Se encontraron registros visualizado en tabla";
                     }elseif ($tipo_listado == 'card') {
                         
-                        while ($datos = $buscar_visitantes->fetch_object()) {
-                            $output['data'].= '
-								<div class="document-card" onclick="toggleCard(this)">
-									<div class="card-header">
-										<div>
-											<p class="document-title">'.$datos->nombres.' '.$datos->apellidos.'</p>
-											<p class="document-meta">'.$datos->tipo_documento.': '.$datos->num_identificacion. ' | ' .$datos->permanencia.'</p>
-										</div>
-										<span class="toggle-icon"><ion-icon name="chevron-down-outline"></ion-icon></span> 
-									</div>
-									<div class="card-details">
-										<p><strong>Fecha y Hora: </strong>'.$datos->fecha_hora_ultimo_ingreso.'</p>
-										<p><strong>Correo:</strong>'.$datos->correo.'</p>
-										<p><strong>Telefono:</strong>'.$datos->telefono.'</p>
-									</div>
-                                    
-                                    
-                                    <div class="contenedor-acciones">
-                                        
-                                        <a class="btn-cards" href="editar-visitante/'.$datos->num_identificacion.'/" >
-                                            <p>
-                                                Editar
-                                            </p>
-                                        </a>
-                                    </div>
-								</div>';
-                        }
+                        $output['data'] = "Se encontraron registros visualizado en card";
                     }
 
-
-                }
-                if ($output['total_registros'] > 0) {
-                    $total_paginas = ceil($output['total_registros'] / $limit);
-                    $output['paginacion'] .= '<nav>';
-                    $output['paginacion'] .= '<ul>';
-
-                    for ($i=1; $i <= $total_paginas ; $i++) { 
-                        $output['paginacion'] .= '<li>
-                                                    <a href="#" onclick="getData('.$i.')">'.$i.'</a>
-                                                </li>';
-                    }
-                    
-                    $output['paginacion'] .= '</ul>';
-                    $output['paginacion'] .= '</nav>';
                 }
             } 
             return json_encode($output, JSON_UNESCAPED_UNICODE);
