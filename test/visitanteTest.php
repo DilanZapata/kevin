@@ -96,7 +96,7 @@ class visitanteTest extends TestCase {
             'tipo_doc_visitante' => 'CC',
             'correo_visitante' => 'dilanadrianzapataortiz@gmail.com',
             'apellidos_visitante' => 'Zapata Ortiz',
-            'num_documento_visitante' => '123456111',//Cambiar la cedula y atos de personas que no existan en la base de datos
+            'num_documento_visitante' => '1237744444',//Cambiar la cedula y atos de personas que no existan en la base de datos para no de error
             'telefono_visitante' => '3169000133',
             'tipo_vehiculo_visitante'=> 'CR',
             'placa_vehiculo_visitante' => 'HJH123'
