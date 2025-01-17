@@ -60,7 +60,7 @@ class visitanteTest extends TestCase {
     }
     
     
-    /* Funcion Caso Prueba Unitaria Intento de registro con datos invalidos*/
+    /* Funcion Caso Prueba Unitaria Intento de registro con datos invalidos prueba ejemplo*/
     public function testRegistrarVehiculoControlerDatosInvalidos() {
 
         $claseVehiculo = new VisitanteController($this->dbMock);
